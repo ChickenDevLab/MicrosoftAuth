@@ -6,6 +6,7 @@ import com.google.gson.JsonParser;
 import de.mcnexus.MicrosoftAuth.Server;
 import kong.unirest.Unirest;
 import org.eclipse.jetty.websocket.api.Session;
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
@@ -49,65 +50,78 @@ public class LauncherWebsocket {
     }
 
     @OnWebSocketConnect
-    private void onConnect(Session session) throws IOException {
-        System.out.println("connect");
-        String ip = session.getRemoteAddress().getAddress().getHostAddress();
-        for (Session s : pendingSessions)
-            if (checkIfFromSelfIp(s, ip)) {
-                s.getRemote().sendString(actionWithoutPayload("ipadralus"));
-                s.close();
-                return;
-            }
-        for (Session s : validatedSessions.values())
-            if (checkIfFromSelfIp(s, ip)) {
-                s.getRemote().sendString(actionWithoutPayload("ipadralus"));
-                s.close();
-                return;
-            }
-        session.getRemote().sendString(actionWithoutPayload("waitforstate"));
+    public void onConnect(Session session){
+        try {
+            session.getRemote().sendString(actionWithoutPayload("waitforstate"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         pendingSessions.add(session);
     }
 
     @OnWebSocketMessage
-    private void onMessage(Session session, String msg) throws IOException {
+    public void onMessage(Session session, String msg){
         JsonObject message = (JsonObject) JsonParser.parseString(msg);
         if (!message.has("code")) {
-            session.getRemote().sendString(actionWithoutPayload("nocode"));
+            try {
+                session.getRemote().sendString(actionWithoutPayload("nocode"));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             return;
         }
-        String code = message.get("code").toString();
-
-
-    /* Waiting for code = state */
-
+        String code = message.get("code").getAsString();
+        /* Waiting for code = state */
         if (code.equalsIgnoreCase("state")) {
             if (validatedSessions.containsValue(session)) {
-                session.getRemote().sendString(actionWithoutPayload("alstaterec"));
+                try {
+                    session.getRemote().sendString(actionWithoutPayload("alstaterec"));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 return;
             }
             if (message.has("state")) {
                 String state = message.get("state").toString();
                 if (validatedSessions.containsKey(state)) {
-                    session.getRemote().sendString(actionWithoutPayload("statedeny"));
+                    try {
+                        session.getRemote().sendString(actionWithoutPayload("statedeny"));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                     return;
                 }
                 pendingSessions.remove(session);
                 validatedSessions.put(state, session);
-                session.getRemote().sendString(actionWithoutPayload("stateaccept"));
+                try {
+                    session.getRemote().sendString(actionWithoutPayload("stateaccept"));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 return;
-            } else
-                session.getRemote().sendString(actionWithoutPayload("statedeny"));
+            } else {
+                try {
+                    session.getRemote().sendString(actionWithoutPayload("statedeny"));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
             return;
         }
 
     }
 
-    private static boolean checkIfFromSelfIp(Session s, String ip) {
-        return s.getRemoteAddress().getAddress().getHostAddress().equalsIgnoreCase(ip);
+    @OnWebSocketClose
+    public void onClose(Session session, int statusCode, String reason){
+        if(pendingSessions.contains(session))
+            pendingSessions.remove(session);
+        if(validatedSessions.containsKey(session))
+            validatedSessions.remove(session);
     }
 
     private static String actionWithoutPayload(String action) {
         return new MessageBuilder().code(action).toString();
     }
 }
+
 

@@ -1,6 +1,9 @@
 package de.mcnexus.MicrosoftAuth;
 
 import de.mcnexus.MicrosoftAuth.websocket.LauncherWebsocket;
+import spark.ExceptionHandler;
+import spark.Request;
+import spark.Response;
 
 import static spark.Spark.*;
 
@@ -22,13 +25,15 @@ public class Server {
 
     private void registerRoutes() {
 
-        webSocket("/flow", LauncherWebsocket.class);
+        webSocket("/", LauncherWebsocket.class);
+
+        init();
         get("/redirect", (req, res) -> {
             if(req.queryParams("state") == null || req.queryParams("code") == null) {
                 res.redirect("https://mc-nexus.de");
                 return null;
             }
-            websocket.authReceived(req.queryParams("state"), req.queryParams("code"));
+            //websocket.authReceived(req.queryParams("state"), req.queryParams("code"));
             res.redirect("https://mc-nexus.de");
             return null;
             //https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize?client_id=3530b541-1564-4c3d-bb2f-407c1b0e0e5d&response_type=code&redirect_uri=http%3A%2F%2Flocalhost%2Fredirect&scope=XboxLive.signin%20offline_access&state=test

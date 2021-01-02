@@ -13,7 +13,6 @@ Alle Nachrichten werden als JSON gesendet:
 
 Code | Payloads | Bedeutung
 ---- | ------- | ---------
-`nocode` | null | Ungültige Nachricht
 `ipadralus` | null | Wird gesendet, wenn von der IP-Adresse, welche sich verbinden will, bereits eine Verbindung exsistiert. Danach wird die Verbindung unterbrochen
 `waitforstate` | null | Server wartet auf `state`
 `stateaccept` | null | Wird gesendet, wenn der mit `state` gesendete Status-Code aktzeptiert wird
