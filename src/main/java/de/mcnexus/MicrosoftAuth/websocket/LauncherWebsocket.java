@@ -82,7 +82,7 @@ public class LauncherWebsocket {
                 return;
             }
             if (message.has("state")) {
-                String state = message.get("state").toString();
+                String state = message.get("state").getAsString();
                 if (validatedSessions.containsKey(state)) {
                     try {
                         session.getRemote().sendString(actionWithoutPayload("statedeny"));
@@ -91,8 +91,11 @@ public class LauncherWebsocket {
                     }
                     return;
                 }
+
                 pendingSessions.remove(session);
                 validatedSessions.put(state, session);
+
+                System.out.println(validatedSessions);
                 try {
                     session.getRemote().sendString(actionWithoutPayload("stateaccept"));
                 } catch (IOException e) {
