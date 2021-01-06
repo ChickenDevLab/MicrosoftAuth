@@ -22,11 +22,11 @@ public class Server {
     private LauncherWebsocket websocket = new LauncherWebsocket();
 
     public static void main(String[] args) {
-        new Server(80);
+        new Server();
     }
 
-    public Server(int port) {
-        port(port);
+    public Server() {
+        port(getHerokuAssignedPort());
         registerRoutes();
 
     }
@@ -38,7 +38,6 @@ public class Server {
         init();
         get("/redirect", (req, res) -> {
             if (req.queryParams("state") == null || req.queryParams("code") == null) {
-                res.redirect("https://mc-nexus.de");
                 return "Error";
             }
             websocket.authReceived(req.queryParams("state"), req.queryParams("code"));
@@ -65,6 +64,14 @@ public class Server {
             return null;
         });
 
+    }
+
+    static int getHerokuAssignedPort() {
+        ProcessBuilder processBuilder = new ProcessBuilder();
+        if (processBuilder.environment().get("PORT") != null) {
+            return Integer.parseInt(processBuilder.environment().get("PORT"));
+        }
+        return 80; //return default port if heroku-port isn't set (i.e. on localhost)
     }
 
 }

@@ -33,7 +33,7 @@ public class LauncherWebsocket {
                         .field("client_secret", Server.clientSecret)
                         .field("code", code)
                         .field("grant_type", "authorization_code")
-                        .field("redirect_uri", "http://localhost/redirect")
+                        .field("redirect_uri", "https://nexusauth.herokuapp.com/redirect")
                         .contentType("application/x-www-form-urlencoded")
                         .asJson().getBody().toString()));
                 task.thenAccept((jsonElement) -> {
@@ -95,7 +95,6 @@ public class LauncherWebsocket {
                 pendingSessions.remove(session);
                 validatedSessions.put(state, session);
 
-                System.out.println(validatedSessions);
                 try {
                     session.getRemote().sendString(actionWithoutPayload("stateaccept"));
                 } catch (IOException e) {
