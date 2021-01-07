@@ -18,6 +18,15 @@ public class Server {
     private LauncherWebsocket websocket = new LauncherWebsocket();
 
     public static void main(String[] args) {
+        if(System.getenv("SECRET") != null)
+            clientSecret = System.getenv("SECRET");
+        if(System.getenv("ID") != null)
+            clientID = System.getenv("ID");
+
+        if(clientID != null || clientSecret != null){
+            new Server();
+            return;
+        }
         try (InputStream input = new FileInputStream("./client")) {
 
             Properties prop = new Properties();
@@ -26,7 +35,13 @@ public class Server {
             clientID = prop.getProperty("id");
             clientSecret = prop.getProperty("secret");
 
+            if(System.getenv("SECRET") != null)
+                clientSecret = System.getenv("SECRET");
+            if(System.getenv("ID") != null)
+                clientID = System.getenv("ID");
+
             if(clientID == null || clientSecret == null){
+
                 System.out.println("Keine Clientinfos gefunden");
                 return;
             }
