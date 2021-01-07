@@ -1,17 +1,9 @@
 package de.mcnexus.MicrosoftAuth;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import de.mcnexus.MicrosoftAuth.websocket.LauncherWebsocket;
-import de.mcnexus.MicrosoftAuth.websocket.MessageBuilder;
 import kong.unirest.Unirest;
-import spark.ExceptionHandler;
-import spark.Request;
-import spark.Response;
-
-import java.io.IOException;
-import java.util.concurrent.CompletableFuture;
 
 import static spark.Spark.*;
 
@@ -50,7 +42,7 @@ public class Server {
             if (object.has("refresh_token")) {
                 return Unirest.post("https://login.live.com/oauth20_token.srf")
                         .field("client_id", Server.clientID)
-                        .field("client_secret", "refresh_code")
+                        .field("client_secret", Server.clientSecret)
                         .field("redirect_uri", "http://localhost/redirect")
                         .field("grant_type", "refresh_token")
                         .field("refresh_token", object.get("refresh_token").getAsString())
