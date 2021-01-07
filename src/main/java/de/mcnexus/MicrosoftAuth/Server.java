@@ -5,16 +5,39 @@ import com.google.gson.JsonParser;
 import de.mcnexus.MicrosoftAuth.websocket.LauncherWebsocket;
 import kong.unirest.Unirest;
 
+import java.io.*;
+import java.util.Properties;
+
 import static spark.Spark.*;
 
 public class Server {
-    public static final String clientID = "3530b541-1564-4c3d-bb2f-407c1b0e0e5d";
-    public static final String clientSecret = ".5lHApsUF9A3omc~8eFAD.6Kqu5cE.1h-d";
+
+    public static String clientID;
+    public static String clientSecret;
 
     private LauncherWebsocket websocket = new LauncherWebsocket();
 
     public static void main(String[] args) {
-        new Server();
+        try (InputStream input = new FileInputStream("./client")) {
+
+            Properties prop = new Properties();
+            prop.load(input);
+
+            clientID = prop.getProperty("id");
+            clientSecret = prop.getProperty("secret");
+
+            if(clientID == null || clientSecret == null){
+                System.out.println("Keine Clientinfos gefunden");
+                return;
+            }
+            new Server();
+
+        } catch (IOException io) {
+            System.out.println("Datei 'client' konnte nicht geladen werden!");
+            io.printStackTrace();
+            return;
+        }
+
     }
 
     public Server() {
