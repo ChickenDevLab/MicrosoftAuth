@@ -15,7 +15,7 @@ public class Server {
     public static String clientID;
     public static String clientSecret;
 
-    private LauncherWebsocket websocket = new LauncherWebsocket();
+    private final LauncherWebsocket websocket = new LauncherWebsocket();
 
     public static void main(String[] args) {
         if(System.getenv("SECRET") != null)
@@ -50,7 +50,6 @@ public class Server {
         } catch (IOException io) {
             System.out.println("Datei 'client' konnte nicht geladen werden!");
             io.printStackTrace();
-            return;
         }
 
     }
@@ -67,10 +66,13 @@ public class Server {
 
         init();
         get("/redirect", (req, res) -> {
-            if (req.queryParams("state") == null || req.queryParams("code") == null) {
+            if (req.queryParams("state") == null || req.queryParams("code") == null || req.queryParams("error") != null) {
+                if(req.queryParams("state") != null){
+                    LauncherWebsocket.denyReceived(req.queryParams("state"));
+                }
                 return "Error";
             }
-            websocket.authReceived(req.queryParams("state"), req.queryParams("code"));
+            LauncherWebsocket.authReceived(req.queryParams("state"), req.queryParams("code"));
             return "Success";
             //https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize?client_id=3530b541-1564-4c3d-bb2f-407c1b0e0e5d&response_type=code&redirect_uri=http%3A%2F%2Flocalhost%2Fredirect&scope=XboxLive.signin%20offline_access&state=test
         });

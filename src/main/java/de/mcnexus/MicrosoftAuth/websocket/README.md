@@ -20,6 +20,7 @@ Code | Payloads | Bedeutung
 `alstaterec` | null | Session hat schon einen Code gesendet, der aktzeptiert wurde
 `authreceiv` | null | Wird gesendet, wenn auf `redirect` ein Authorisation-Code ankommt
 `final` | `response` - Enthält `refresh_token`, `access_token`, etc. | Sendet die finale Antwort mit allen benötigten Daten
+`authdeny` | null | Authorisierung fehlgeschlagen
 
 ## Clientseitig
 

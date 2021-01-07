@@ -20,8 +20,8 @@ import java.util.concurrent.CompletableFuture;
 
 @WebSocket
 public class LauncherWebsocket {
-    private static List<Session> pendingSessions = new ArrayList<>();
-    private static Map<String, Session> validatedSessions = new HashMap<>();
+    private static final List<Session> pendingSessions = new ArrayList<>();
+    private static final Map<String, Session> validatedSessions = new HashMap<>();
 
     public static void authReceived(String state, String code) {
         if (validatedSessions.containsKey(state)) {
@@ -46,6 +46,15 @@ public class LauncherWebsocket {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    public static void denyReceived(String state) throws IOException {
+        if(validatedSessions.containsKey(state)){
+            Session s = validatedSessions.get(state);
+            s.getRemote().sendString(new MessageBuilder().code("authdeny").toString());
+            s.close();
+            validatedSessions.remove(s);
         }
     }
 
@@ -100,7 +109,7 @@ public class LauncherWebsocket {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                return;
+
             } else {
                 try {
                     session.getRemote().sendString(actionWithoutPayload("statedeny"));
@@ -108,7 +117,7 @@ public class LauncherWebsocket {
                     e.printStackTrace();
                 }
             }
-            return;
+
         }
 
     }
