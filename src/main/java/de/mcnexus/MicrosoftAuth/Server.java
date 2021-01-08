@@ -15,18 +15,11 @@ public class Server {
     public static String clientID;
     public static String clientSecret;
 
+    public static int port = 80;
+
     private final LauncherWebsocket websocket = new LauncherWebsocket();
 
     public static void main(String[] args) {
-        if(System.getenv("SECRET") != null)
-            clientSecret = System.getenv("SECRET");
-        if(System.getenv("ID") != null)
-            clientID = System.getenv("ID");
-
-        if(clientID != null || clientSecret != null){
-            new Server();
-            return;
-        }
         try (InputStream input = new FileInputStream("./client")) {
 
             Properties prop = new Properties();
@@ -34,11 +27,7 @@ public class Server {
 
             clientID = prop.getProperty("id");
             clientSecret = prop.getProperty("secret");
-
-            if(System.getenv("SECRET") != null)
-                clientSecret = System.getenv("SECRET");
-            if(System.getenv("ID") != null)
-                clientID = System.getenv("ID");
+            port = prop.getProperty("port") != null ? Integer.parseInt(prop.getProperty("port")) : 80;
 
             if(clientID == null || clientSecret == null){
 
@@ -55,7 +44,7 @@ public class Server {
     }
 
     public Server() {
-        port(getHerokuAssignedPort());
+        port(port);
         registerRoutes();
 
     }
@@ -63,6 +52,7 @@ public class Server {
     private void registerRoutes() {
 
         webSocket("/", LauncherWebsocket.class);
+        staticFiles.location("static");
 
         init();
         get("/redirect", (req, res) -> {
@@ -70,9 +60,11 @@ public class Server {
                 if(req.queryParams("state") != null){
                     LauncherWebsocket.denyReceived(req.queryParams("state"));
                 }
+                res.redirect("/waiting/index.html");
                 return "Error";
             }
             LauncherWebsocket.authReceived(req.queryParams("state"), req.queryParams("code"));
+            res.redirect("/waiting/index.html");
             return "Success";
             //https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize?client_id=3530b541-1564-4c3d-bb2f-407c1b0e0e5d&response_type=code&redirect_uri=http%3A%2F%2Flocalhost%2Fredirect&scope=XboxLive.signin%20offline_access&state=test
         });
@@ -97,13 +89,4 @@ public class Server {
         });
 
     }
-
-    static int getHerokuAssignedPort() {
-        ProcessBuilder processBuilder = new ProcessBuilder();
-        if (processBuilder.environment().get("PORT") != null) {
-            return Integer.parseInt(processBuilder.environment().get("PORT"));
-        }
-        return 80; //return default port if heroku-port isn't set (i.e. on localhost)
-    }
-
 }
